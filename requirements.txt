@@ -1,0 +1,17 @@
+numpy==1.23.5
+pandas==1.5.3
+tensorflow
+
+
+# tests
+httpx           # HTTP client
+pytest-asyncio  # asynchronous I/O support for pytest
+
+# img
+pillow
+
+# web
+streamlit
+requests
+python-dotenv
+uvicorn         # web server

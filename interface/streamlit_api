@@ -1,0 +1,66 @@
+import streamlit as st
+import requests
+from PIL import Image
+from dotenv import load_dotenv
+import os
+
+# Setting Page Config
+st.set_page_config(page_title="🔥 Wildfire Detection Service",
+                   page_icon="🔥",
+                   layout="centered")
+
+# Title & Subtitle
+st.title("🔥 WELCOME TO YOUR WILDFIRE DETECTION SERVICE 🔥")
+
+st.markdown("""
+#### Stay Alert. Stay Safe. Protect Our Planet. 🌍
+Are you concerned about wildfires? Do you want to **quickly analyze satellite images** to detect potential wildfire hazards?
+
+This service allows you to **upload satellite images**, and our AI model will **instantly classify** them as `"Wildfire"` or `"No Wildfire"`.
+
+---
+
+## **HOW DOES IT WORK? 🛰️**
+1️⃣ **Upload a satellite image** (JPG or PNG)
+2️⃣ **Click 'Analyze Image'** to start the detection
+3️⃣ **Get instant AI results** with a confidence score of XXXYYYYYYY
+""")
+
+# Upload (we might add "choose random image from our library" here)
+st.markdown("### 📸 Upload a Satellite Image for Analysis")
+uploaded_file = st.file_uploader("Choose an image file...", type=["jpg", "png", "jpeg"])
+
+# Prediction
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+    if st.button("🔥 Analyze Image"):
+        st.write("⏳ Processing your image... Please wait.")
+
+        # Converting image
+        img_bytes = io.BytesIO()
+        image.save(img_bytes, format="JPEG")
+        img_bytes = img_bytes.getvalue()
+
+        # image as FastAPI BE input
+        api_url = "http://localhost:8000/predict"  # We need to update it with our final API URL!!!!!
+        files = {"file": img_bytes}
+        response = requests.post(api_url, files=files)
+
+        if response.status_code == 200:
+            result = response.json()
+            prediction = result["prediction"]
+            confidence = result["confidence"]
+
+            # shwoing results
+            st.success(f"🔥 Prediction: **{prediction.upper()}**")
+            st.info(f"✅ Confidence Score: **{confidence * 100:.2f}%**")
+
+            if prediction == "wildfire":
+                st.error("⚠️ ALERT! This image shows signs of a wildfire.")
+            else:
+                st.success("✅ No wildfire detected. Stay safe!")
+
+        else:
+            st.error(f"⚠️ Error: {response.json().get('detail', 'Unknown error')}")
