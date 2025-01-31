@@ -1,7 +1,6 @@
-numpy==1.23.5
-pandas==1.5.3
-tensorflow
-
+numpy==2.0.2
+pandas==2.2.3
+tensorflow==2.18.0
 
 # tests
 httpx           # HTTP client
@@ -10,8 +9,12 @@ pytest-asyncio  # asynchronous I/O support for pytest
 # img
 pillow
 
-# web
+#models
+python-dotenv
+python-multipart
+
+# web/API
 streamlit
 requests
-python-dotenv
 uvicorn         # web server
+fastapi
