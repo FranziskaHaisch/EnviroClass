@@ -9,14 +9,11 @@ COPY enviro_class /app/enviro_class
 COPY api /app/api
 COPY models /app/models
 COPY requirements.txt /app/
+COPY interface/streamlit_api.py /app/
 
 # Step 4: Installing dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Step 5: Exposing both APIs (wildfire + environment)
-EXPOSE 8001 8002
-
-# STEP 6: Launching web server with Uvicorn (starting both APIs)
-CMD uvicorn api.wildfire:app --host 0.0.0.0 --port 8001 & \
-    uvicorn api.environment:app --host 0.0.0.0 --port 8002
+# STEP 5: Launching web server with Uvicorn
+CMD uvicorn api.fast:app --host 0.0.0.0 --port $PORT

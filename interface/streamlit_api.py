@@ -2,10 +2,14 @@ import streamlit as st
 import requests
 from PIL import Image
 import io
+import os
 
 # FastAPI Endpoints
-WILDFIRE_API_URL = "http://127.0.0.1:8001/predict-wildfire"  # Wildfire API
-ENVIRONMENT_API_URL = "http://127.0.0.1:8002/predict-environment"  # Environment API
+PORT = os.getenv("PORT", "8000")
+API_URL = os.getenv("API_URL", f"http://127.0.0.1:{PORT}")
+WILDFIRE_API_URL = f"{API_URL}/predict-wildfire"
+ENVIRONMENT_API_URL = f"{API_URL}/predict-environment"
+
 
 # Setting Page Config
 st.set_page_config(page_title="🔥 Wildfire Detection Service",
@@ -22,15 +26,11 @@ st.markdown("""
 #### Stay Alert. Stay Safe. Protect Our Planet. 🌍
 Are you concerned about wildfires? Do you want to **quickly analyze satellite images** to detect potential wildfire hazards?
 
-This service allows you to **upload satellite images**, and our AI model will **instantly classify** them as
+This service allows you to **upload satellite images**, and our AI model will **instantly classify** them as:
 
-- `"Wildfire"` or `"No Wildfire"`,
+- `Wildfire` or `No Wildfire`
 
-and determine if it's in a
-
-- `"green_area"`, `"desert"`, `"water"`, or `"cloudy"`
-
-region.
+- If `Wildfire`, determine whether it's in a `green_area` or `desert`
 
 ---
 
@@ -39,7 +39,7 @@ region.
 
 2️⃣ **Click 'Analyze Image'** to start the detection
 
-3️⃣ **Get AI results:** `"Wildfire in Green Area"` or `"Nowildfire in Desert"`
+3️⃣ **Get AI results:** `"Wildfire in Green Area"` or `"Nowildfire"`
 """)
 
 # Upload (we might add "choose random image from our library" here)
@@ -63,26 +63,34 @@ if uploaded_file:
         # STEP 1: Sending image --> Wildfire API
         wildfire_response = requests.post(WILDFIRE_API_URL, files=files)
 
-        if wildfire_response.status_code == 200:
+        try:
+            wildfire_response = requests.post(WILDFIRE_API_URL, files=files)
+            wildfire_response.raise_for_status()
             wildfire_result = wildfire_response.json()
             wildfire_prediction = wildfire_result["wildfire_prediction"]
             wildfire_confidence = wildfire_result["wildfire_confidence"]
 
-            # STEP 2: Extracting enviro pred from wildfire API response
-            environment_prediction = wildfire_result["environment_prediction"]
-            final_result = wildfire_result["final_result"]
 
-            # Displaying results
             st.success(f"🔥 Prediction: **{wildfire_prediction.upper()}**")
             st.info(f"✅ Confidence Score: **{wildfire_confidence * 100:.2f}%**")
-            st.warning(f"🌍 Environment Type: **{environment_prediction}**")
-            st.success(f"🔎 Final Analysis: **{final_result}**")
 
-            # Displaying wildfire alert
             if wildfire_prediction == "wildfire":
                 st.error("⚠️ ALERT! This image shows signs of a wildfire.")
+
+
+                # STEP 2: Sending image to Environment API
+                try:
+                    environment_response = requests.post(ENVIRONMENT_API_URL, files=files)
+                    environment_response.raise_for_status()
+                    environment_result = environment_response.json()
+                    environment_prediction = environment_result["prediction"]
+
+                    st.warning(f"🌍 Environment Type: **{environment_prediction}**")
+                    st.success(f"🔎 Final Analysis: **Wildfire in {environment_prediction}**")
+                except requests.exceptions.RequestException as e:
+                    st.error(f"⚠️ Error fetching environment classification: {str(e)}")
             else:
                 st.success("✅ No wildfire detected. Stay safe!")
 
-        else:
-            st.error(f"⚠️ Error: {wildfire_response.json().get('detail', 'Unknown error')}")
+        except requests.exceptions.RequestException as e:
+            st.error(f"⚠️ Error connecting to wildfire prediction API: {str(e)}")

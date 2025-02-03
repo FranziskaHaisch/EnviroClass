@@ -87,37 +87,37 @@ async def predict_environment(file: UploadFile = File(...)):
     if app.state.environment_model is None:
         raise HTTPException(status_code=500, detail="Environment model not loaded")
 
-    try:
-        # STEP 0: Reading + preprocessing uploaded image
-        image_bytes = await file.read()
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        input_tensor = preprocess_environment_image(image)
+    #try:
+    # STEP 0: Reading + preprocessing uploaded image
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    input_tensor = preprocess_environment_image(image)
 
-        # STEP 1: Predicting ENVIROMENT
-        predictions = app.state.environment_model.predict(input_tensor)
-        class_index = int(np.argmax(predictions, axis=-1)[0]) # only works if each bounding box contains individual class score
+    # STEP 1: Predicting ENVIROMENT
+    predictions = app.state.environment_model(input_tensor)
+    class_index = int(np.argmax(predictions, axis=-1)[0]) # only works if each bounding box contains individual class score
 
-        # STEP 2: Labelling + results
-        environment_labels = ['Agriculture',
-                              'Airport',
-                              'Beach',
-                              'City',
-                              'Desert',
-                              'Forest',
-                              'Grassland',
-                              'Highway',
-                              'Lake',
-                              'Mountain',
-                              'Parking',
-                              'Port',
-                              'Railway',
-                              'River']# MUST BE ADAPTED TO OUR MODEL
-        environment_prediction = environment_labels[class_index]
+    # STEP 2: Labelling + results
+    environment_labels = ['Agriculture',
+                        'Airport',
+                        'Beach',
+                        'City',
+                        'Desert',
+                        'Forest',
+                        'Grassland',
+                        'Highway',
+                        'Lake',
+                        'Mountain',
+                        'Parking',
+                        'Port',
+                        'Railway',
+                        'River']# MUST BE ADAPTED TO OUR MODEL
+    environment_prediction = environment_labels[class_index]
 
-        return {"prediction": environment_prediction}
+    return {"prediction": environment_prediction}
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
+    #except Exception as e:
+        #raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
 
 
 @app.get("/")
