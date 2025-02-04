@@ -1,9 +1,6 @@
 import tensorflow as tf
 import os
-
-
-model = tf.keras.models.load_model("models/test_model.keras")
-model.save("models/test_model.keras", include_optimizer=False)
+from ultralytics import YOLO
 
 
 def load_wildfire_model():
@@ -13,7 +10,7 @@ def load_wildfire_model():
     absolute_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Moves up one level
 
     # path to wildfire model
-    wildfire_model_path = os.path.join(absolute_path, "models", "cnn_2classes_ver1.keras")
+    wildfire_model_path = os.path.join(absolute_path, "models", "wildfire_cnn_2classes.keras")
 
     # Loading +returning model
     return tf.keras.models.load_model(wildfire_model_path)
@@ -26,7 +23,7 @@ def load_environment_model():
     absolute_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Moves up one level
 
     # path to environment model
-    environment_model_path = os.path.join(absolute_path, "models", "test_model.keras")
+    environment_model_path = os.path.join(absolute_path, "models", "environment_yolo_14classes.pt")
 
     # Loading +returning model
-    return tf.keras.models.load_model(environment_model_path)
+    return YOLO(environment_model_path)

@@ -1,6 +1,9 @@
-numpy==2.0.2
+#numpy==2.0.2
+numpy==1.26.4
 pandas==2.2.3
-tensorflow==2.18.0
+tensorflow-cpu==2.17.1
+#tensorflow==2.18.0
+keras==3.5.0
 
 # tests
 httpx           # HTTP client
@@ -12,6 +15,14 @@ pillow
 #models
 python-dotenv
 python-multipart
+
+# YOLO requirements
+torch
+torchvision
+--extra-index-url https://download.pytorch.org/whl/cpu
+ultralytics
+opencv-python-headless
+
 
 # web/API
 streamlit
