@@ -9,7 +9,7 @@ COPY enviro_class /app/enviro_class
 COPY api /app/api
 COPY models /app/models
 COPY requirements.txt /app/
-COPY interface/streamlit_api.py /app/
+#COPY interface/streamlit_api.py /app/
 
 # Step 4: Installing dependencies
 RUN pip install --upgrade pip
