@@ -6,6 +6,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import img_to_array
 from PIL import Image
+import torch
+from ultralytics import YOLO
 
 from enviro_class.modeling import load_wildfire_model, load_environment_model
 
@@ -24,18 +26,19 @@ app.add_middleware(
 )
 
 # Loading WILDFIRE DETECTION + ENVIRONMENT model
-app.state.wildfire_model = load_wildfire_model()
-app.state.environment_model = load_environment_model()
+app.state.wildfire_model = load_wildfire_model() # CNN
+app.state.environment_model = load_environment_model() # YOLO
 
-# Image preprocessing (we need to adapt!!!)
+# Image preprocessing
 def preprocess_image(image: Image.Image) -> np.ndarray:
     """Preprocessing image to match WILDFIRE model input format
     WE MIGHT HAVE TO ADAPT THIS DEPENDING ON OUR MODEL"""
     image = image.resize((350,350))  # Ensuring correct input size!!!!
-    image = img_to_array(image) / 255.0  # Normalizing pixel values
-    image = np.expand_dims(image, axis=0)
-    #image = image.reshape(1, -1)  # Flattening (1, 64*64*3)
+    image = np.array(image, dtype=np.float32)  # Converting to NumPy array
+    image = np.expand_dims(image, axis=0)  # Adding batch dimension (1, 350, 350, 3)
     return image
+
+
 
 @app.post("/predict-wildfire")
 async def predict_wildfire(file: UploadFile = File(...)):
@@ -53,30 +56,26 @@ async def predict_wildfire(file: UploadFile = File(...)):
         input_tensor = preprocess_image(image)
 
         # STEP 1: Predicting WILDFIRE
-        predictions = app.state.wildfire_model.predict(input_tensor)
-        print("Raw model output:", predictions)  # Debugging
-
-        class_index = int(np.argmax(predictions, axis=-1)[0]) # based on softmax
-        print("Predicted class index:", class_index)  # Debugging
+        wf_predictions = app.state.wildfire_model.predict(input_tensor)
+        print("Raw model output:", wf_predictions)  # Debugging
 
         # STEP 2: Labelling + results
-        wildfire_labels = ["nowildfire", "wildfire"]
-        wildfire_prediction = wildfire_labels[class_index]
-        wildfire_confidence = float(predictions[0][0])
+        wildfire_labels = ["wildfire", "nowildfire"]
+        wildfire_probability = float(wf_predictions[0][0]) # prob score
+        wildfire_prediction = "wildfire" if wildfire_probability > 0.5 else "nowildfire"
 
         return {
             "wildfire_prediction": wildfire_prediction,
-            "wildfire_confidence": wildfire_confidence
-        }
+            "wildfire_confidence": wildfire_probability if wildfire_prediction == "wildfire" else (1 - wildfire_probability)
+            }
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
 
 # Preprocessing function for environment classification
 def preprocess_environment_image(image: Image.Image) -> np.ndarray:
-    image = image.resize((64, 64))  # Resize to model's expected input size
-    image = img_to_array(image) / 255.0  # Normalize pixel values
-    image = np.expand_dims(image, axis=0)
+    image = image.resize((640, 640))  # Resize to model's expected input size
+    #image = img_to_array(image) / 255.0  # Normalize pixel values
     return image
 
 
@@ -87,38 +86,53 @@ async def predict_environment(file: UploadFile = File(...)):
     if app.state.environment_model is None:
         raise HTTPException(status_code=500, detail="Environment model not loaded")
 
-    #try:
-    # STEP 0: Reading + preprocessing uploaded image
-    image_bytes = await file.read()
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    input_tensor = preprocess_environment_image(image)
+    try:
+        # STEP 0: Reading + preprocessing uploaded image
+        image_bytes = await file.read()
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        input_tensor = preprocess_environment_image(image)
 
-    # STEP 1: Predicting ENVIROMENT
-    predictions = app.state.environment_model(input_tensor)
-    class_index = int(np.argmax(predictions, axis=-1)[0]) # only works if each bounding box contains individual class score
+                # Converting image to Torch tensor for YOLO
+        #input_tensor = torch.tensor(input_tensor, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
 
-    # STEP 2: Labelling + results
-    environment_labels = ['Agriculture',
-                        'Airport',
-                        'Beach',
-                        'City',
-                        'Desert',
-                        'Forest',
-                        'Grassland',
-                        'Highway',
-                        'Lake',
-                        'Mountain',
-                        'Parking',
-                        'Port',
-                        'Railway',
-                        'River']# MUST BE ADAPTED TO OUR MODEL
-    environment_prediction = environment_labels[class_index]
 
-    return {"prediction": environment_prediction}
+        # STEP 1: Predicting ENVIROMENT with YOLO
+        env_prediction = app.state.environment_model.predict(input_tensor)
 
-    #except Exception as e:
-        #raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
+        # Extract first detected class (if any)
+        if len(env_prediction[0].boxes) > 0:
+            class_index = int(env_prediction[0].boxes.cls[0].item())
+            confidence = float(env_prediction[0].boxes.conf[0].item())
 
+            # STEP 2: Labelling
+            environment_labels = ['Agriculture',
+                                  'Airport',
+                                  'Beach',
+                                  'City',
+                                  'Desert',
+                                  'Forest',
+                                  'Grassland',
+                                  'Highway',
+                                  'Lake',
+                                  'Mountain',
+                                  'Parking',
+                                  'Port',
+                                  'Railway',
+                                  'River']# MUST BE ADAPTED TO OUR MODEL
+
+            # STEP 3: Extracting YOLO predictions
+            environment_prediction = environment_labels[class_index]
+
+            return {
+                "environment_prediction": environment_prediction,
+                "confidence": confidence
+                }
+
+        else:
+            return {"message": "No significant environment features detected."}
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
 
 @app.get("/")
 def index():

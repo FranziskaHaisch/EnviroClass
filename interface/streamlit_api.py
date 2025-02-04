@@ -6,7 +6,7 @@ import os
 
 # FastAPI Endpoints
 PORT = os.getenv("PORT", "8000")
-API_URL = os.getenv("API_URL", f"http://127.0.0.1:{PORT}")
+API_URL = "https://enviroclass-605755972351.europe-west1.run.app"
 WILDFIRE_API_URL = f"{API_URL}/predict-wildfire"
 ENVIRONMENT_API_URL = f"{API_URL}/predict-environment"
 
@@ -83,7 +83,7 @@ if uploaded_file:
                     environment_response = requests.post(ENVIRONMENT_API_URL, files=files)
                     environment_response.raise_for_status()
                     environment_result = environment_response.json()
-                    environment_prediction = environment_result["prediction"]
+                    environment_prediction = environment_result["environment_prediction"]
 
                     st.warning(f"🌍 Environment Type: **{environment_prediction}**")
                     st.success(f"🔎 Final Analysis: **Wildfire in {environment_prediction}**")

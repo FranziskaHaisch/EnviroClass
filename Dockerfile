@@ -14,6 +14,7 @@ COPY interface/streamlit_api.py /app/
 # Step 4: Installing dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+RUN apt-get update && apt-get install -y python3-opencv
 
 # STEP 5: Launching web server with Uvicorn
 CMD uvicorn api.fast:app --host 0.0.0.0 --port $PORT
