@@ -1,5 +1,6 @@
 import io
 import os
+import base64
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
@@ -25,10 +26,13 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
 # Loading WILDFIRE DETECTION + ENVIRONMENT model
 app.state.wildfire_model = load_wildfire_model() # CNN
 app.state.environment_model = load_environment_model() # YOLO
 
+
+# PART 1: WILDFIRE DETECTION - CNN MODEL
 # Image preprocessing
 def preprocess_image(image: Image.Image) -> np.ndarray:
     """Preprocessing image to match WILDFIRE model input format
@@ -39,11 +43,10 @@ def preprocess_image(image: Image.Image) -> np.ndarray:
     return image
 
 
-
 @app.post("/predict-wildfire")
 async def predict_wildfire(file: UploadFile = File(...)):
     """
-    Predicting if uploaded satellite image shows signs of wildfire
+    Predicting if uploaded satellite image shows signs of wildfire using CNN
     """
 
     if app.state.wildfire_model is None:
@@ -72,16 +75,19 @@ async def predict_wildfire(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
 
+
+# PART 2: ENVIRONMENT DETECTION - YOLO MODEL
 # Preprocessing function for environment classification
 def preprocess_environment_image(image: Image.Image) -> np.ndarray:
     image = image.resize((640, 640))  # Resize to model's expected input size
-    #image = img_to_array(image) / 255.0  # Normalize pixel values
     return image
 
 
 @app.post("/predict-environment")
 async def predict_environment(file: UploadFile = File(...)):
-    """Predicting if satellite image contains e.g. 'green_area', 'desert'"""
+    """
+    Predicting if satellite image contains specific areas using YOLO
+    """
 
     if app.state.environment_model is None:
         raise HTTPException(status_code=500, detail="Environment model not loaded")
@@ -92,19 +98,15 @@ async def predict_environment(file: UploadFile = File(...)):
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         input_tensor = preprocess_environment_image(image)
 
-                # Converting image to Torch tensor for YOLO
-        #input_tensor = torch.tensor(input_tensor, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
-
-
         # STEP 1: Predicting ENVIROMENT with YOLO
         env_prediction = app.state.environment_model.predict(input_tensor)
 
-        # Extract first detected class (if any)
+        # STEP 2: Extracting first detected class (if any)
         if len(env_prediction[0].boxes) > 0:
             class_index = int(env_prediction[0].boxes.cls[0].item())
             confidence = float(env_prediction[0].boxes.conf[0].item())
 
-            # STEP 2: Labelling
+        # STEP 3: Labelling
             environment_labels = ['Agriculture',
                                   'Airport',
                                   'Beach',
@@ -118,21 +120,40 @@ async def predict_environment(file: UploadFile = File(...)):
                                   'Parking',
                                   'Port',
                                   'Railway',
-                                  'River']# MUST BE ADAPTED TO OUR MODEL
+                                  'River']
 
-            # STEP 3: Extracting YOLO predictions
-            environment_prediction = environment_labels[class_index]
+        # STEP 4: Extracting multiple detected areas
+            detected_objects = [
+            {
+                "class": environment_labels[int(obj.cls.item())],
+                "confidence": float(obj.conf.item())
+            }
+            for obj in env_prediction[0].boxes
+        ]
+
+        # STEP 5: Generating + saving annotated image + bounding boxes
+            output_image = env_prediction[0].plot()
+            output_image_path = "annotated_image.jpg"
+            output_image_pil = Image.fromarray(output_image)
+            output_image_pil.save(output_image_path)
+
+        # STEP 5: Converting image --> base64 for API response
+            with open(output_image_path, "rb") as img_file:
+                encoded_image = base64.b64encode(img_file.read()).decode("utf-8")
 
             return {
-                "environment_prediction": environment_prediction,
-                "confidence": confidence
-                }
+                "environment_prediction": detected_objects,
+                "confidence": confidence,
+                "annotated_image": encoded_image
+            }
 
         else:
             return {"message": "No significant environment features detected."}
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
+
+
 
 @app.get("/")
 def index():
