@@ -30,6 +30,7 @@ data/
 models/
 *.joblib
 *.h5
+*.keras
 *.pt
 
 # Any pickle files
@@ -45,4 +46,6 @@ secrets.toml
 *.json
 
 # User defined extras
-# Complete to your desire
+# Streamlit Frontend (stored in our "EnviroClass Frontend" Repo)
+READ ONLY/
+*.py
