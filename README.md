@@ -7,8 +7,8 @@ EnviroClass combines satellite imagery and machine learning to map and analyze e
 App: [EnviroClass](https://enviroclass.streamlit.app/)
 
 <div style="display: flex; justify-content: center">
-  <img src="../images/enviroclass_demo_no_wildfire.png" alt="EnviroClass in action" style="width: 45%; margin-right: 5px;">
-  <img src="../images/enviroclass_demo_wildfire.png" alt="EnviroClass in action" style="width: 45%; margin-left: 5px;">
+  <img src="images/enviroclass_demo_no_wildfire.png" alt="EnviroClass in action" style="width: 45%; margin-right: 5px;">
+  <img src="images/enviroclass_demo_wildfire.png" alt="EnviroClass in action" style="width: 45%; margin-left: 5px;">
 </div>
 
 ## Tech Stack
