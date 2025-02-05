@@ -14,7 +14,8 @@ App: [EnviroClass](https://enviroclass.streamlit.app/)
 ## Tech Stack
 - **Programming Languages**: Python
 - **Models**: CNN, YOLO 11 OBB
-- **Tools**: Jupyter Notebooks, Google Colab
+- **Frameworks**: FastAPI, Streamlit
+- **Tools**: Jupyter Notebooks, Kaggle Notebooks, Google Cloud, Docker
 
 ## Data
 We use three curated Kaggle datasets for our analysis:
@@ -23,10 +24,10 @@ We use three curated Kaggle datasets for our analysis:
 3. **[Satellite Image Classification Dataset](https://www.kaggle.com/code/nirmalgaud/satellite-images-classification)**: Provides labeled images for various land cover types.
 
 ## Contributors
-- Bhupen Dabholkar [GitHub](https://github.com/bhupen-git)
+- Bhupen Dabholkar [GitHub](https://github.com/bhupen-git) | [LinkedIn](https://www.linkedin.com/in/bhupen-dabholkar-1291221b2/)
 - Franziska Haisch [GitHub](https://github.com/FranziskaHaisch) | [LinkedIn](www.linkedin.com/in/franziska-haisch-26125234b)
-- Lukas Berger [GitHub](https://github.com/Luulyberg)
-- Therese Hempel [GitHub](https://github.com/Theresaurus)
+- Lukas Berger [GitHub](https://github.com/Luulyberg) | [LinkedIn](https://www.linkedin.com/in/lb341ab39a/)
+- Therese Hempel [GitHub](https://github.com/Theresaurus) | [LinkedIn](http://www.linkedin.com/in/therese-hempel)
 
 ## Acknowledgements
 We would like to thank the Kaggle community for providing the datasets used in this project. Special thanks to our mentors from LeWagon for their support and guidance throughout the development of EnviroClass.
