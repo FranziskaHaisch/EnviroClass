@@ -15,7 +15,8 @@ App: [EnviroClass](https://enviroclass.streamlit.app/)
 - **Programming Languages**: Python
 - **Models**: CNN, YOLO 11 OBB
 - **Frameworks**: FastAPI, Streamlit
-- **Tools**: Jupyter Notebooks, Kaggle Notebooks, Google Cloud, Docker
+- **Tools**: Jupyter Notebooks, Kaggle Notebooks, Docker
+- **Cloud Platforms**: Google Cloud
 
 ## Data
 We use three curated Kaggle datasets for our analysis:
