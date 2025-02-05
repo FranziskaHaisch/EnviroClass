@@ -26,7 +26,7 @@ We use three curated Kaggle datasets for our analysis:
 
 ## Contributors
 - Bhupen Dabholkar [GitHub](https://github.com/bhupen-git) | [LinkedIn](https://www.linkedin.com/in/bhupen-dabholkar-1291221b2/)
-- Franziska Haisch [GitHub](https://github.com/FranziskaHaisch) | [LinkedIn](www.linkedin.com/in/franziska-haisch-26125234b)
+- Franziska Haisch [GitHub](https://github.com/FranziskaHaisch) | [LinkedIn](https://www.linkedin.com/in/franziska-haisch-26125234b)
 - Lukas Berger [GitHub](https://github.com/Luulyberg) | [LinkedIn](https://www.linkedin.com/in/lb341ab39a/)
 - Therese Hempel [GitHub](https://github.com/Theresaurus) | [LinkedIn](http://www.linkedin.com/in/therese-hempel)
 
