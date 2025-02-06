@@ -98,15 +98,12 @@ async def predict_environment(file: UploadFile = File(...)):
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         input_tensor = preprocess_environment_image(image)
 
-        # STEP 1: Predicting ENVIROMENT with YOLO
+            # STEP 1: Predicting ENVIROMENT with YOLO
         env_prediction = app.state.environment_model.predict(input_tensor)
 
         # STEP 2: Extracting first detected class (if any)
         if len(env_prediction[0].boxes) > 0:
-            class_index = int(env_prediction[0].boxes.cls[0].item())
-            confidence = float(env_prediction[0].boxes.conf[0].item())
-
-        # STEP 3: Labelling
+            detected_objects = []
             environment_labels = ['Agriculture',
                                   'Airport',
                                   'Beach',
@@ -122,14 +119,19 @@ async def predict_environment(file: UploadFile = File(...)):
                                   'Railway',
                                   'River']
 
-        # STEP 4: Extracting multiple detected areas
-            detected_objects = [
-            {
-                "class": environment_labels[int(obj.cls.item())],
-                "confidence": float(obj.conf.item())
-            }
-            for obj in env_prediction[0].boxes
-        ]
+            for obj in env_prediction[0].boxes:
+                class_index = int(obj.cls.item())
+                confidence = float(obj.conf.item())
+                detected_class = environment_labels[class_index]
+
+                # Modify "Lake" output to "Lake or Sea"
+                if detected_class == "Lake":
+                    detected_class = "Lake or Sea"
+
+                detected_objects.append({
+                    "class": detected_class,
+                    "confidence": confidence
+                })
 
         # STEP 5: Generating + saving annotated image + bounding boxes
             output_image = env_prediction[0].plot()
