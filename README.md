@@ -1,6 +1,6 @@
 # EnviroClass
 
-Exploring Enviromental Wildfire Patterns with Satellite Data
+Exploring Enviromental and Wildfire Patterns with Satellite Data
 
 EnviroClass combines satellite imagery and machine learning to map and analyze environmental features, with a primary focus on predicting wildfires. Our project also classifies land cover types, including agricultural areas, forests, and urban regions. By offering a comprehensive view of the environment, EnviroClass enhances monitoring and supports better decision-making.
 
