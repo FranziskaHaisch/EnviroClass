@@ -13,7 +13,7 @@ App: [EnviroClass](https://enviroclass.streamlit.app/)
 
 ## Tech Stack
 - **Programming Languages**: Python
-- **Models**: CNN, YOLO 11 OBB
+- **Models**: CNN, YOLO 8
 - **Frameworks**: FastAPI, Streamlit
 - **Tools**: Jupyter Notebooks, Kaggle Notebooks, Docker
 - **Cloud Platforms**: Google Cloud
